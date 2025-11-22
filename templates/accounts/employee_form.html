@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Employee - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-user-{% if action == 'Add' %}plus{% else %}edit{% endif %} mr-2"></i>{{ action }} Employee
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-3xl">
+    <form method="post">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Username *</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Email *</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">First Name</label>
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Last Name</label>
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Phone</label>
+                {{ form.phone }}
+                {{ form.phone.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Role *</label>
+                {{ form.role }}
+                {{ form.role.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Joining Date</label>
+                {{ form.join_date }}
+                {{ form.join_date.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Training Date</label>
+                {{ form.training_date }}
+                {{ form.training_date.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Basic Salary *</label>
+                {{ form.basic_salary }}
+                {{ form.basic_salary.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Incentive Rate</label>
+                {{ form.incentive_rate }}
+                {{ form.incentive_rate.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Status *</label>
+                {{ form.status }}
+                {{ form.status.errors }}
+            </div>
+            {% if action == 'Add' %}
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Password *</label>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Confirm Password *</label>
+                {{ form.password_confirm }}
+                {{ form.password_confirm.errors }}
+            </div>
+            {% endif %}
+        </div>
+        <div class="mt-6 flex gap-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-save mr-2"></i>Save
+            </button>
+            <a href="{% url 'accounts:employee_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

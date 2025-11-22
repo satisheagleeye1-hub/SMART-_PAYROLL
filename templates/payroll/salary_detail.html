@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Salary Details - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-file-invoice-dollar mr-2"></i>Salary Details
+    </h1>
+    <a href="{% url 'payroll:salary_slip_pdf' salary.id %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+        <i class="fas fa-download mr-2"></i>Download PDF
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Employee Info -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Employee Information</h2>
+        <div class="space-y-3">
+            <div>
+                <p class="text-sm text-gray-600">Employee ID</p>
+                <p class="font-semibold">{{ salary.employee.emp_id }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Name</p>
+                <p class="font-semibold">{{ salary.employee.get_full_name|default:salary.employee.username }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Email</p>
+                <p class="font-semibold">{{ salary.employee.email }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Phone</p>
+                <p class="font-semibold">{{ salary.employee.phone|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Salary Period -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Salary Period</h2>
+        <div class="space-y-3">
+            <div>
+                <p class="text-sm text-gray-600">Start Date</p>
+                <p class="font-semibold">{{ salary.start_date|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">End Date</p>
+                <p class="font-semibold">{{ salary.end_date|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Total Working Days</p>
+                <p class="font-semibold">{{ salary.total_working_days }} days</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Total Present Days</p>
+                <p class="font-semibold">{{ salary.total_present_days }} days</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Salary Breakdown -->
+<div class="bg-white rounded-lg shadow-md p-6 mt-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Salary Breakdown</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+            <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                <span class="font-semibold">Basic Salary</span>
+                <span class="text-xl font-bold">₹{{ salary.basic_salary|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                <span class="font-semibold">Total Incentive</span>
+                <span class="text-xl font-bold text-green-600">+₹{{ salary.total_incentive|floatformat:2 }}</span>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div class="flex justify-between items-center p-4 bg-red-50 rounded-lg">
+                <span class="font-semibold">Total Penalty</span>
+                <span class="text-xl font-bold text-red-600">-₹{{ salary.total_penalty|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-yellow-50 rounded-lg">
+                <span class="font-semibold">Half-Day Cuts</span>
+                <span class="text-xl font-bold">{{ salary.half_day_cuts }} days</span>
+            </div>
+        </div>
+    </div>
+    <div class="mt-6 p-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg text-white">
+        <div class="flex justify-between items-center">
+            <span class="text-2xl font-bold">Net Salary</span>
+            <span class="text-3xl font-bold">₹{{ salary.net_salary|floatformat:2 }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

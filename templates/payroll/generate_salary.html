@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Salary - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-calculator mr-2"></i>Generate Salary
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+    <form method="get" action="{% url 'payroll:generate_salary' %}">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Select Employee *</label>
+            <select name="employee" class="border rounded-lg px-4 py-2 w-full" required>
+                <option value="">Select Employee</option>
+                {% for emp in employees %}
+                <option value="{{ emp.emp_id }}">{{ emp.emp_id }} - {{ emp.get_full_name|default:emp.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Reference Date (Optional)</label>
+            <input type="date" name="reference_date" value="{% now 'Y-m-d' %}" class="border rounded-lg px-4 py-2 w-full">
+            <p class="text-xs text-gray-500 mt-1">Salary period will be calculated from joining date. Leave empty for current date.</p>
+        </div>
+        <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-calculator mr-2"></i>Generate Salary
+            </button>
+            <a href="{% url 'payroll:salary_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

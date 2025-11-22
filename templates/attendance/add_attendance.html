@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Attendance - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-plus mr-2"></i>Add Attendance
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Employee *</label>
+            <select name="employee" class="border rounded-lg px-4 py-2 w-full" required>
+                <option value="">Select Employee</option>
+                {% for emp in employees %}
+                <option value="{{ emp.emp_id }}">{{ emp.emp_id }} - {{ emp.get_full_name|default:emp.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Date *</label>
+            <input type="date" name="date" value="{% now 'Y-m-d' %}" class="border rounded-lg px-4 py-2 w-full" required>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Clock In Time</label>
+                <input type="time" name="in_time" class="border rounded-lg px-4 py-2 w-full">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Clock Out Time</label>
+                <input type="time" name="out_time" class="border rounded-lg px-4 py-2 w-full">
+            </div>
+        </div>
+        <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-save mr-2"></i>Save
+            </button>
+            <a href="{% url 'attendance:all_attendance' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Collection - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-trash mr-2"></i>Delete Collection
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+    <p class="text-lg mb-4">Are you sure you want to delete this collection?</p>
+    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <p><strong>Employee:</strong> {{ collection.employee.get_full_name|default:collection.employee.username }}</p>
+        <p><strong>Date:</strong> {{ collection.date|date:"d/m/Y" }}</p>
+        <p><strong>Amount:</strong> ₹{{ collection.amount_collected|floatformat:2 }}</p>
+        <p><strong>Incentive:</strong> ₹{{ collection.incentive_earned|floatformat:2 }}</p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-4">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-trash mr-2"></i>Delete
+            </button>
+            <a href="{% url 'incentives:collection_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

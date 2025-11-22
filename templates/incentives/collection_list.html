@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Collections - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-money-bill-wave mr-2"></i>Daily Collections
+    </h1>
+    {% if user.is_admin %}
+    <div class="flex gap-2">
+        <a href="{% url 'incentives:report' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+            <i class="fas fa-chart-line mr-2"></i>Report
+        </a>
+        <a href="{% url 'incentives:add_collection' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+            <i class="fas fa-plus mr-2"></i>Add Collection
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <p class="text-gray-600 text-sm">Total Collection</p>
+        <p class="text-3xl font-bold text-gray-800">₹{{ total_collected|floatformat:2 }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+        <p class="text-gray-600 text-sm">Total Incentives</p>
+        <p class="text-3xl font-bold text-gray-800">₹{{ total_incentive|floatformat:2 }}</p>
+    </div>
+</div>
+
+<!-- Filters (Admin only) -->
+{% if user.is_admin %}
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <select name="employee" class="border rounded-lg px-4 py-2">
+            <option value="">All Employees</option>
+            {% for emp in employees %}
+            <option value="{{ emp.emp_id }}" {% if employee_id == emp.emp_id %}selected{% endif %}>
+                {{ emp.emp_id }} - {{ emp.get_full_name|default:emp.username }}
+            </option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date_from" value="{{ date_from }}" placeholder="From Date" class="border rounded-lg px-4 py-2">
+        <input type="date" name="date_to" value="{{ date_to }}" placeholder="To Date" class="border rounded-lg px-4 py-2">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+            <i class="fas fa-search mr-2"></i>Filter
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Collections Table -->
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Employee</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount Collected</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Incentive Earned</th>
+                    {% if user.is_admin %}
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for coll in collections %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ coll.employee.get_full_name|default:coll.employee.username }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ coll.date|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap font-semibold">₹{{ coll.amount_collected|floatformat:2 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">₹{{ coll.incentive_earned|floatformat:2 }}</td>
+                    {% if user.is_admin %}
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'incentives:edit_collection' coll.id %}" class="text-blue-600 hover:text-blue-800 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'incentives:delete_collection' coll.id %}" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if user.is_admin %}5{% else %}4{% endif %}" class="px-6 py-4 text-center text-gray-500">No collections found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

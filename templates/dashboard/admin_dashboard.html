@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-dashboard mr-2"></i>Admin Dashboard
+    </h1>
+    <p class="text-gray-600 mt-1">Welcome, {{ user.get_full_name|default:user.username }}!</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Present Today</p>
+                <p class="text-3xl font-bold text-gray-800">{{ present_count }}</p>
+            </div>
+            <i class="fas fa-user-check text-4xl text-green-500"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Absent Today</p>
+                <p class="text-3xl font-bold text-gray-800">{{ absent_count }}</p>
+            </div>
+            <i class="fas fa-user-times text-4xl text-red-500"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Daily Collection</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ total_daily_collection|floatformat:0 }}</p>
+            </div>
+            <i class="fas fa-money-bill-wave text-4xl text-blue-500"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Incentives</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ total_incentives|floatformat:0 }}</p>
+            </div>
+            <i class="fas fa-gift text-4xl text-purple-500"></i>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Monthly Attendance Chart -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-chart-bar mr-2"></i>Monthly Attendance
+        </h2>
+        <canvas id="attendanceChart"></canvas>
+    </div>
+
+    <!-- Daily Collection Chart -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-chart-line mr-2"></i>Daily Collection (Last 30 Days)
+        </h2>
+        <canvas id="collectionChart"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Salary Distribution Chart -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-chart-pie mr-2"></i>Salary Distribution
+        </h2>
+        <canvas id="salaryChart"></canvas>
+    </div>
+
+    <!-- Today's Attendance List -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-list mr-2"></i>Today's Attendance
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Employee</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">IN Time</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in today_attendance_list %}
+                    <tr class="border-b">
+                        <td class="px-4 py-2">{{ att.employee.get_full_name|default:att.employee.username }}</td>
+                        <td class="px-4 py-2">{{ att.in_time|time:"H:i" }}</td>
+                        <td class="px-4 py-2">
+                            {% if att.half_day %}
+                            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Half Day</span>
+                            {% elif att.late_minutes > 0 %}
+                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">Late ({{ att.late_minutes }}m)</span>
+                            {% else %}
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">On Time</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-2 text-center text-gray-500">No attendance records for today</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Collections -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-money-bill-wave mr-2"></i>Recent Collections
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Employee</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Amount</th>
+                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Incentive</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coll in recent_collections %}
+                    <tr class="border-b">
+                        <td class="px-4 py-2">{{ coll.employee.get_full_name|default:coll.employee.username }}</td>
+                        <td class="px-4 py-2">{{ coll.date|date:"d/m/Y" }}</td>
+                        <td class="px-4 py-2">₹{{ coll.amount_collected|floatformat:2 }}</td>
+                        <td class="px-4 py-2">₹{{ coll.incentive_earned|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-4 py-2 text-center text-gray-500">No collections yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Low Attendance Alerts -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-exclamation-triangle mr-2"></i>Low Attendance Alerts
+        </h2>
+        <div class="space-y-2">
+            {% for item in low_attendance_employees %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                <p class="font-semibold text-gray-800">{{ item.employee.get_full_name|default:item.employee.username }}</p>
+                <p class="text-sm text-gray-600">Only {{ item.present_days }} days present this month</p>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-center py-4">No low attendance alerts</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Monthly Attendance Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attendanceCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_months }},
+            datasets: [{
+                label: 'Attendance',
+                data: {{ chart_attendance }},
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Daily Collection Chart
+    const collectionCtx = document.getElementById('collectionChart').getContext('2d');
+    new Chart(collectionCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_dates }},
+            datasets: [{
+                label: 'Collection (₹)',
+                data: {{ chart_collections }},
+                borderColor: 'rgba(34, 197, 94, 1)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Salary Distribution Chart
+    const salaryCtx = document.getElementById('salaryChart').getContext('2d');
+    const salaryLabels = [{% for r in salary_ranges %}'{{ r.label }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    const salaryData = [{% for r in salary_ranges %}{{ r.count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    new Chart(salaryCtx, {
+        type: 'pie',
+        data: {
+            labels: salaryLabels,
+            datasets: [{
+                data: salaryData,
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(168, 85, 247, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+{% endblock %}
+

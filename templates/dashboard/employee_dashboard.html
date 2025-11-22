@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Dashboard - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-dashboard mr-2"></i>My Dashboard
+    </h1>
+    <p class="text-gray-600 mt-1">Welcome, {{ user.get_full_name|default:user.username }}!</p>
+</div>
+
+<!-- Today's Punch Status -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">
+        <i class="fas fa-clock mr-2"></i>Today's Attendance
+    </h2>
+    {% if today_attendance %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600">Clock In</p>
+            <p class="text-2xl font-bold text-blue-600">
+                {% if today_attendance.in_time %}
+                {{ today_attendance.in_time|time:"H:i:s" }}
+                {% else %}
+                <a href="{% url 'attendance:clock_in' %}" class="text-blue-500 hover:text-blue-700">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Clock In
+                </a>
+                {% endif %}
+            </p>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-600">Clock Out</p>
+            <p class="text-2xl font-bold text-green-600">
+                {% if today_attendance.out_time %}
+                {{ today_attendance.out_time|time:"H:i:s" }}
+                {% elif today_attendance.in_time %}
+                <a href="{% url 'attendance:clock_out' %}" class="text-green-500 hover:text-green-700">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Clock Out
+                </a>
+                {% else %}
+                <span class="text-gray-400">Clock in first</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <p class="text-gray-600 mb-4">You haven't clocked in today</p>
+        <a href="{% url 'attendance:clock_in' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg inline-block">
+            <i class="fas fa-sign-in-alt mr-2"></i>Clock In Now
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Month Summary -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Attendance</p>
+                <p class="text-3xl font-bold text-gray-800">{{ total_attendance }}</p>
+                <p class="text-xs text-gray-500 mt-1">This month</p>
+            </div>
+            <i class="fas fa-calendar-check text-4xl text-blue-500"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Collection</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ total_collection|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500 mt-1">This month</p>
+            </div>
+            <i class="fas fa-money-bill-wave text-4xl text-green-500"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Incentives</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ total_incentive|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500 mt-1">This month</p>
+            </div>
+            <i class="fas fa-gift text-4xl text-purple-500"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Total Penalties</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ total_penalty|floatformat:0 }}</p>
+                <p class="text-xs text-gray-500 mt-1">This month</p>
+            </div>
+            <i class="fas fa-exclamation-circle text-4xl text-red-500"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Latest Salary -->
+{% if latest_salary %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">
+        <i class="fas fa-file-invoice-dollar mr-2"></i>Latest Salary Slip
+    </h2>
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div>
+                <p class="text-sm text-gray-600">Period</p>
+                <p class="font-semibold">{{ latest_salary.start_date|date:"d/m/Y" }} - {{ latest_salary.end_date|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Basic Salary</p>
+                <p class="font-semibold">₹{{ latest_salary.basic_salary|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Net Salary</p>
+                <p class="font-semibold text-green-600">₹{{ latest_salary.net_salary|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-600">Present Days</p>
+                <p class="font-semibold">{{ latest_salary.total_present_days }}/{{ latest_salary.total_working_days }}</p>
+            </div>
+        </div>
+        <a href="{% url 'payroll:salary_slip_pdf' latest_salary.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg inline-block">
+            <i class="fas fa-download mr-2"></i>Download PDF
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+

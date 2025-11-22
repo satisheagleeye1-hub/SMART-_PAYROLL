@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Employees - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-users mr-2"></i>Employee Management
+    </h1>
+    <a href="{% url 'accounts:employee_add' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+        <i class="fas fa-plus mr-2"></i>Add Employee
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search by ID, name, email..." class="border rounded-lg px-4 py-2">
+        <select name="role" class="border rounded-lg px-4 py-2">
+            <option value="">All Roles</option>
+            <option value="Admin" {% if role_filter == 'Admin' %}selected{% endif %}>Admin</option>
+            <option value="User" {% if role_filter == 'User' %}selected{% endif %}>User</option>
+        </select>
+        <select name="status" class="border rounded-lg px-4 py-2">
+            <option value="">All Status</option>
+            <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+            <option value="Inactive" {% if status_filter == 'Inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+            <i class="fas fa-search mr-2"></i>Filter
+        </button>
+    </form>
+</div>
+
+<!-- Employee Table -->
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Phone</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Role</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Salary</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for employee in employees %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap font-semibold">{{ employee.emp_id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ employee.get_full_name|default:employee.username }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ employee.email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ employee.phone|default:"-" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded {% if employee.role == 'Admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ employee.role }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">₹{{ employee.basic_salary|floatformat:2 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded {% if employee.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ employee.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'accounts:employee_edit' employee.id %}" class="text-blue-600 hover:text-blue-800 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'accounts:employee_toggle_status' employee.id %}" class="text-orange-600 hover:text-orange-800">
+                            <i class="fas fa-toggle-{% if employee.status == 'Active' %}on{% else %}off{% endif %}"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">No employees found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

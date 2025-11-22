@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Incentive Report - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-chart-line mr-2"></i>Incentive Report
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+        <select name="employee" class="border rounded-lg px-4 py-2">
+            <option value="">All Employees</option>
+            {% for emp in employees %}
+            <option value="{{ emp.emp_id }}" {% if employee_id == emp.emp_id %}selected{% endif %}>
+                {{ emp.emp_id }} - {{ emp.get_full_name|default:emp.username }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <input type="date" name="date_from" value="{{ date_from }}" class="border rounded-lg px-4 py-2" placeholder="From" />
+        <input type="date" name="date_to" value="{{ date_to }}" class="border rounded-lg px-4 py-2" placeholder="To" />
+
+        <select name="mode" class="border rounded-lg px-4 py-2">
+            <option value="day" {% if mode == 'day' %}selected{% endif %}>Day-wise</option>
+            <option value="month" {% if mode == 'month' %}selected{% endif %}>Month-wise</option>
+        </select>
+
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg col-span-1">
+            Filter
+        </button>
+    </form>
+</div>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Period</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Employee</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Total Collected</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Total Incentive</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for row in rows %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if mode == 'month' %}
+                            {{ row.period|date:"F, Y" }}
+                        {% else %}
+                            {{ row.period|date:"d/m/Y" }}
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ row.employee__emp_id }} - {{ row.employee__first_name }} {{ row.employee__last_name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap font-semibold">₹{{ row.total_collected|default:0|floatformat:2 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">₹{{ row.total_incentive|default:0|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">No records found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="bg-gray-50">
+                <tr>
+                    <td class="px-6 py-3 font-bold">Grand Total</td>
+                    <td></td>
+                    <td class="px-6 py-3 font-semibold">₹{{ grand_collected|floatformat:2 }}</td>
+                    <td class="px-6 py-3 font-semibold">₹{{ grand_incentive|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+

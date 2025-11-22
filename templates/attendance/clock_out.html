@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Clock Out - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-sign-out-alt mr-2"></i>Clock Out
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+    <form method="post">
+        {% csrf_token %}
+        <div class="text-center py-8">
+            <i class="fas fa-clock text-6xl text-green-600 mb-4"></i>
+            <p class="text-xl text-gray-700 mb-6">Ready to clock out?</p>
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-lg">
+                <i class="fas fa-sign-out-alt mr-2"></i>Clock Out Now
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

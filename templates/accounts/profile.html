@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Smart Payroll System{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">
+        <i class="fas fa-user mr-2"></i>My Profile
+    </h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-3xl">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Employee ID</label>
+            <p class="text-lg font-semibold">{{ user.emp_id }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+            <p class="text-lg font-semibold">{{ user.username }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+            <p class="text-lg font-semibold">{{ user.get_full_name|default:"-" }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+            <p class="text-lg font-semibold">{{ user.email }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Phone</label>
+            <p class="text-lg font-semibold">{{ user.phone|default:"-" }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Role</label>
+            <p class="text-lg font-semibold">
+                <span class="px-2 py-1 rounded {% if user.role == 'Admin' %}bg-purple-100 text-purple-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {{ user.role }}
+                </span>
+            </p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Joining Date</label>
+            <p class="text-lg font-semibold">{{ user.join_date|date:"d/m/Y"|default:"-" }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Basic Salary</label>
+            <p class="text-lg font-semibold">₹{{ user.basic_salary|floatformat:2 }}</p>
+        </div>
+        <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+            <p class="text-lg font-semibold">
+                <span class="px-2 py-1 rounded {% if user.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ user.status }}
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
