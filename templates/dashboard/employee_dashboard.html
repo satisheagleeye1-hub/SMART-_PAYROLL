@@ -23,7 +23,7 @@
                 {% if today_attendance.in_time %}
                 {{ today_attendance.in_time|time:"H:i:s" }}
                 {% else %}
-                <a href="{% url 'attendance:clock_in' %}" class="text-blue-500 hover:text-blue-700">
+                <a href="{% url 'attendance:clock_in' %}?quick=1" class="text-blue-500 hover:text-blue-700">
                     <i class="fas fa-sign-in-alt mr-2"></i>Clock In
                 </a>
                 {% endif %}
@@ -47,7 +47,7 @@
     {% else %}
     <div class="text-center py-8">
         <p class="text-gray-600 mb-4">You haven't clocked in today</p>
-        <a href="{% url 'attendance:clock_in' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg inline-block">
+        <a href="{% url 'attendance:clock_in' %}?quick=1" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg inline-block">
             <i class="fas fa-sign-in-alt mr-2"></i>Clock In Now
         </a>
     </div>
@@ -134,4 +134,3 @@
 {% endif %}
 
 {% endblock %}
-

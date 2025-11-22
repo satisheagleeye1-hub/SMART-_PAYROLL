@@ -70,8 +70,11 @@
                         <a href="{% url 'accounts:employee_edit' employee.id %}" class="text-blue-600 hover:text-blue-800 mr-3">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="{% url 'accounts:employee_toggle_status' employee.id %}" class="text-orange-600 hover:text-orange-800">
+                        <a href="{% url 'accounts:employee_toggle_status' employee.id %}" class="text-orange-600 hover:text-orange-800 mr-3">
                             <i class="fas fa-toggle-{% if employee.status == 'Active' %}on{% else %}off{% endif %}"></i>
+                        </a>
+                        <a href="{% url 'accounts:employee_change_password' employee.id %}" title="Change Password" class="text-green-600 hover:text-green-800">
+                            <i class="fas fa-key"></i>
                         </a>
                     </td>
                 </tr>
@@ -85,4 +88,3 @@
     </div>
 </div>
 {% endblock %}
-

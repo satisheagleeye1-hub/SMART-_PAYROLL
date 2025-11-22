@@ -9,7 +9,7 @@
     </h1>
     <div class="flex gap-4">
         {% if not today_attendance or not today_attendance.in_time %}
-        <a href="{% url 'attendance:clock_in' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+        <a href="{% url 'attendance:clock_in' %}?quick=1" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
             <i class="fas fa-sign-in-alt mr-2"></i>Clock In
         </a>
         {% elif not today_attendance.out_time %}
@@ -126,4 +126,3 @@
     </div>
 </div>
 {% endblock %}
-

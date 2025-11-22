@@ -53,6 +53,28 @@
     </div>
 </div>
 
+<!-- New payout card row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Company Payout (Today)</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ company_payout_total_today|floatformat:2 }}</p>
+            </div>
+            <i class="fas fa-hand-holding-usd text-4xl text-indigo-500"></i>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-300">
+        <div>
+            <p class="text-gray-600 text-sm">Company Payout (This Month)</p>
+            <p class="text-3xl font-bold text-gray-800">₹{{ company_payout_total_month|floatformat:2 }}</p>
+        </div>
+    </div>
+    <!-- placeholder for future cards -->
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-gray-200"></div>
+    <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-gray-200"></div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Monthly Attendance Chart -->
     <div class="bg-white rounded-lg shadow-md p-6">
@@ -172,6 +194,44 @@
     </div>
 </div>
 
+<!-- New table showing per-employee collections and payouts (today) -->
+<div class="bg-white rounded-lg shadow-md p-6 mt-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">
+        <i class="fas fa-receipt mr-2"></i>Collections & Company Payout (Today)
+    </h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Employee</th>
+                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Collected (₹)</th>
+                    <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Company Payout (85%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in collection_payouts_today %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ item.employee_name }}</td>
+                    <td class="px-4 py-2">₹{{ item.total_collected|floatformat:2 }}</td>
+                    <td class="px-4 py-2">₹{{ item.payout|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-4 py-2 text-center text-gray-500">No collections for today</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="border-t">
+                    <td class="px-4 py-2 font-semibold">Total</td>
+                    <td class="px-4 py-2">₹{{ total_daily_collection|floatformat:2 }}</td>
+                    <td class="px-4 py-2">₹{{ company_payout_total_today|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -248,4 +308,3 @@
     });
 </script>
 {% endblock %}
-

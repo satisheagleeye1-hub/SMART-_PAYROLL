@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django import forms
 from .models import Employee
 from .forms import EmployeeForm
 
@@ -103,3 +104,48 @@ def employee_toggle_status(request, employee_id):
     employee.save()
     return redirect('accounts:employee_list')
 
+
+# ------------------- New: change password for employee -------------------
+class EmployeePasswordForm(forms.Form):
+    password = forms.CharField(
+        label='New password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        min_length=6,
+        required=True
+    )
+    password_confirm = forms.CharField(
+        label='Confirm password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=True
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        p = cleaned.get('password')
+        pc = cleaned.get('password_confirm')
+        if p and pc and p != pc:
+            raise forms.ValidationError("Passwords do not match.")
+        return cleaned
+
+
+@login_required
+def employee_change_password(request, employee_id):
+    """Admin-only change employee password"""
+    if not request.user.is_admin:
+        messages.error(request, 'Access denied.')
+        return redirect('dashboard:employee_dashboard')
+
+    employee = get_object_or_404(Employee, id=employee_id)
+
+    if request.method == 'POST':
+        form = EmployeePasswordForm(request.POST)
+        if form.is_valid():
+            new_pw = form.cleaned_data['password']
+            employee.set_password(new_pw)
+            employee.save()
+            messages.success(request, f'Password for {employee.get_full_name() or employee.username} updated successfully.')
+            return redirect('accounts:employee_list')
+    else:
+        form = EmployeePasswordForm()
+
+    return render(request, 'accounts/employee_change_password.html', {'form': form, 'employee': employee})

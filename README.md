@@ -184,11 +184,32 @@ Configure attendance rules from Django Admin:
 - Input validation
 - Session timeout
 
-## License
+# SMART PAYROLL
 
-This project is proprietary software.
+This is the Smart Payroll system project. To push this project to your GitHub account repository named `SMART-PAYROLL`, follow the steps below.
 
-## Support
+IMPORTANT: Do not commit secrets. The `.env` file is included in `.gitignore` — keep it local and secure.
 
-For issues or questions, please contact the development team.
+## Push to GitHub (manual steps)
 
+1. Create a new repository on GitHub named `SMART-PAYROLL` (or any name you prefer).
+
+2. Locally, add the remote and push:
+
+```bash
+# replace <your-github-username> if you prefer
+git remote add origin https://github.com/<your-github-username>/SMART-PAYROLL.git
+git branch -M main
+git push -u origin main
+```
+
+3. If using SSH instead of HTTPS:
+
+```bash
+git remote add origin git@github.com:<your-github-username>/SMART-PAYROLL.git
+git push -u origin main
+```
+
+4. After pushing, set up repository secrets (if using CI) and do not push `.env` to GitHub.
+
+If you want me to create the GitHub repo for you and push automatically, install and authenticate the GitHub CLI (`gh`) or provide a personal access token and I can use the GitHub API to create the repo.

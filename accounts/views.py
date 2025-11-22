@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
@@ -35,8 +35,14 @@ def login_view(request):
     return render(request, 'accounts/login.html', {'form': form})
 
 
+def logout_view(request):
+    """Log out the current user and redirect to login page. Accepts GET and POST to be resilient to link/form calls."""
+    # Call Django logout; it's safe to call even if user is not authenticated
+    logout(request)
+    return redirect('accounts:login')
+
+
 @login_required
 def profile_view(request):
     """User profile view"""
     return render(request, 'accounts/profile.html', {'user': request.user})
-

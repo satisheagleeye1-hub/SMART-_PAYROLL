@@ -10,27 +10,45 @@ from accounts.models import Employee
 
 @login_required
 def clock_in(request):
-    """Employee clock-in view"""
+    """Employee clock-in view
+
+    Supports:
+    - POST: standard form submit with CSRF
+    - GET with ?quick=1: perform quick clock-in (convenience for clients)
+    """
     today = timezone.now().date()
-    
+
     # Check if already clocked in today
     existing = Attendance.objects.filter(employee=request.user, date=today).first()
-    
+
     if existing and existing.in_time:
         messages.warning(request, 'You have already clocked in today.')
         return redirect('attendance:my_attendance')
-    
+
+    # Quick clock-in via GET: /attendance/clock-in/?quick=1
+    if request.method == 'GET' and request.GET.get('quick') == '1':
+        if existing:
+            attendance = existing
+        else:
+            attendance = Attendance(employee=request.user, date=today)
+
+        # Use localtime to honor TIME_ZONE when USE_TZ is True
+        attendance.in_time = timezone.localtime(timezone.now()).time()
+        attendance.save()
+        messages.success(request, f'Clocked in successfully at {attendance.in_time.strftime("%H:%M:%S")}')
+        return redirect('attendance:my_attendance')
+
     if request.method == 'POST':
         if existing:
             attendance = existing
         else:
             attendance = Attendance(employee=request.user, date=today)
-        
-        attendance.in_time = timezone.now().time()
+
+        attendance.in_time = timezone.localtime(timezone.now()).time()
         attendance.save()
         messages.success(request, f'Clocked in successfully at {attendance.in_time.strftime("%H:%M:%S")}')
         return redirect('attendance:my_attendance')
-    
+
     return render(request, 'attendance/clock_in.html')
 
 
@@ -49,7 +67,7 @@ def clock_out(request):
         return redirect('attendance:my_attendance')
     
     if request.method == 'POST':
-        attendance.out_time = timezone.now().time()
+        attendance.out_time = timezone.localtime(timezone.now()).time()
         attendance.save()
         messages.success(request, f'Clocked out successfully at {attendance.out_time.strftime("%H:%M:%S")}')
         return redirect('attendance:my_attendance')
@@ -175,4 +193,3 @@ def add_attendance(request):
     
     employees = Employee.objects.filter(status='Active').order_by('emp_id')
     return render(request, 'attendance/add_attendance.html', {'employees': employees})
-

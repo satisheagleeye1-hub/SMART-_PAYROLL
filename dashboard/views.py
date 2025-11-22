@@ -5,6 +5,7 @@ from django.db.models import Sum, Count, Q
 from django.utils.safestring import mark_safe
 import json
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 from accounts.models import Employee
 from attendance.models import Attendance
 from incentives.models import DailyCollection
@@ -28,9 +29,60 @@ def admin_dashboard(request):
     today_collections = DailyCollection.objects.filter(date=today)
     total_daily_collection = today_collections.aggregate(Sum('amount_collected'))['amount_collected__sum'] or 0
     total_incentives = today_collections.aggregate(Sum('incentive_earned'))['incentive_earned__sum'] or 0
-    
-    # Total payout (this month)
+
+    # Per-employee collection totals and payout (85%) for today
+    per_employee_today_qs = DailyCollection.objects.filter(date=today).values(
+        'employee', 'employee__id', 'employee__first_name', 'employee__last_name', 'employee__username'
+    ).annotate(total_collected=Sum('amount_collected'))
+
+    collection_payouts_today = []
+    company_payout_total_today = Decimal('0.00')
+    for row in per_employee_today_qs:
+        total_col = row['total_collected'] or Decimal('0.00')
+        # Ensure Decimal
+        total_col = Decimal(total_col)
+        payout = (total_col * Decimal('0.85')).quantize(Decimal('0.01'))
+        company_payout_total_today += payout
+        employee_display = row.get('employee__first_name') or ''
+        if row.get('employee__last_name'):
+            employee_display = (employee_display + ' ' + row.get('employee__last_name')).strip()
+        if not employee_display:
+            employee_display = row.get('employee__username') or f"ID {row.get('employee')}"
+
+        collection_payouts_today.append({
+            'employee_id': row['employee__id'] or row['employee'],
+            'employee_name': employee_display,
+            'total_collected': total_col,
+            'payout': payout,
+        })
+
+    # Also compute per-employee for current month (optional)
     current_month_start = date(today.year, today.month, 1)
+    per_employee_month_qs = DailyCollection.objects.filter(date__gte=current_month_start, date__lte=today).values(
+        'employee', 'employee__id', 'employee__first_name', 'employee__last_name', 'employee__username'
+    ).annotate(total_collected=Sum('amount_collected'))
+
+    collection_payouts_month = []
+    company_payout_total_month = Decimal('0.00')
+    for row in per_employee_month_qs:
+        total_col = row['total_collected'] or Decimal('0.00')
+        total_col = Decimal(total_col)
+        payout = (total_col * Decimal('0.85')).quantize(Decimal('0.01'))
+        company_payout_total_month += payout
+        employee_display = row.get('employee__first_name') or ''
+        if row.get('employee__last_name'):
+            employee_display = (employee_display + ' ' + row.get('employee__last_name')).strip()
+        if not employee_display:
+            employee_display = row.get('employee__username') or f"ID {row.get('employee')}"
+
+        collection_payouts_month.append({
+            'employee_id': row['employee__id'] or row['employee'],
+            'employee_name': employee_display,
+            'total_collected': total_col,
+            'payout': payout,
+        })
+
+    # Total payout (this month)
     current_month_salaries = Salary.objects.filter(
         end_date__gte=current_month_start,
         end_date__lte=today
@@ -126,6 +178,10 @@ def admin_dashboard(request):
         'chart_collections': mark_safe(json.dumps(chart_collections)),
         'salary_ranges': salary_ranges,
         'today': today,
+        'collection_payouts_today': collection_payouts_today,
+        'company_payout_total_today': company_payout_total_today,
+        'collection_payouts_month': collection_payouts_month,
+        'company_payout_total_month': company_payout_total_month,
     }
     return render(request, 'dashboard/admin_dashboard.html', context)
 
@@ -172,4 +228,3 @@ def employee_dashboard(request):
         'latest_salary': latest_salary,
     }
     return render(request, 'dashboard/employee_dashboard.html', context)
-
