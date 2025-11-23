@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from datetime import datetime
 from decimal import Decimal
-from .models import DailyCollection
+from .models import DailyCollection, Person
 from accounts.models import Employee
 
 
@@ -59,6 +59,15 @@ def add_collection(request):
         employee_id = request.POST.get('employee')
         date_str = request.POST.get('date')
         amount = request.POST.get('amount_collected')
+        office_type = request.POST.get('office_type', 'first')
+        
+        # Person details
+        person_name = request.POST.get('person_name', '').strip()
+        person_mobile = request.POST.get('person_mobile', '').strip()
+        person_location = request.POST.get('person_location', '').strip()
+        person_area = request.POST.get('person_area', '').strip()
+        person_mail_id = request.POST.get('person_mail_id', '').strip()
+        person_training_date = request.POST.get('person_training_date', '').strip()
         
         try:
             employee = Employee.objects.get(emp_id=employee_id)
@@ -69,11 +78,39 @@ def add_collection(request):
                 messages.error(request, 'Amount cannot be negative.')
                 return redirect('incentives:add_collection')
             
+            # Handle person - check if mobile exists, if so use existing, else create new
+            person = None
+            if person_mobile:
+                person, created = Person.objects.get_or_create(
+                    mobile=person_mobile,
+                    defaults={
+                        'name': person_name or 'Unknown',
+                        'location': person_location,
+                        'area': person_area,
+                        'mail_id': person_mail_id,
+                        'training_date': datetime.strptime(person_training_date, '%Y-%m-%d').date() if person_training_date else None
+                    }
+                )
+                # If person exists, update details if provided
+                if not created and person_name:
+                    person.name = person_name
+                    if person_location:
+                        person.location = person_location
+                    if person_area:
+                        person.area = person_area
+                    if person_mail_id:
+                        person.mail_id = person_mail_id
+                    if person_training_date:
+                        person.training_date = datetime.strptime(person_training_date, '%Y-%m-%d').date()
+                    person.save()
+            
             # Always create a new DailyCollection row so multiple collections per day are allowed
             DailyCollection.objects.create(
                 employee=employee,
+                person=person,
                 date=coll_date,
-                amount_collected=amount_decimal
+                amount_collected=amount_decimal,
+                office_type=office_type
             )
             messages.success(request, 'Collection added successfully.')
 
@@ -96,6 +133,15 @@ def edit_collection(request, collection_id):
     
     if request.method == 'POST':
         amount = request.POST.get('amount_collected')
+        office_type = request.POST.get('office_type', 'first')
+        
+        # Person details
+        person_name = request.POST.get('person_name', '').strip()
+        person_mobile = request.POST.get('person_mobile', '').strip()
+        person_location = request.POST.get('person_location', '').strip()
+        person_area = request.POST.get('person_area', '').strip()
+        person_mail_id = request.POST.get('person_mail_id', '').strip()
+        person_training_date = request.POST.get('person_training_date', '').strip()
         
         try:
             amount_decimal = Decimal(amount)
@@ -104,6 +150,37 @@ def edit_collection(request, collection_id):
                 return redirect('incentives:edit_collection', collection_id=collection_id)
             
             collection.amount_collected = amount_decimal
+            collection.office_type = office_type
+            
+            # Handle person - check if mobile exists, if so use existing, else create new
+            if person_mobile:
+                person, created = Person.objects.get_or_create(
+                    mobile=person_mobile,
+                    defaults={
+                        'name': person_name or 'Unknown',
+                        'location': person_location,
+                        'area': person_area,
+                        'mail_id': person_mail_id,
+                        'training_date': datetime.strptime(person_training_date, '%Y-%m-%d').date() if person_training_date else None
+                    }
+                )
+                # If person exists, update details if provided
+                if not created:
+                    if person_name:
+                        person.name = person_name
+                    if person_location:
+                        person.location = person_location
+                    if person_area:
+                        person.area = person_area
+                    if person_mail_id:
+                        person.mail_id = person_mail_id
+                    if person_training_date:
+                        person.training_date = datetime.strptime(person_training_date, '%Y-%m-%d').date()
+                    person.save()
+                collection.person = person
+            else:
+                collection.person = None
+            
             collection.save()
             messages.success(request, 'Collection updated successfully.')
             return redirect('incentives:collection_list')

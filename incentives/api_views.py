@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Sum
-from .models import DailyCollection
+from .models import DailyCollection, Person
 from .serializers import DailyCollectionSerializer
 from accounts.models import Employee
 
@@ -109,4 +109,33 @@ def calculate_daily_incentive_api(request):
         'total_incentive': float(total_incentive),
         'collections_count': collections.count()
     })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_person_by_mobile_api(request):
+    """API endpoint for getting person details by mobile number (for auto-fill)"""
+    mobile = request.GET.get('mobile', '').strip()
+    
+    if not mobile:
+        return Response(
+            {'error': 'Mobile number required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        person = Person.objects.get(mobile=mobile)
+        return Response({
+            'found': True,
+            'name': person.name,
+            'mobile': person.mobile,
+            'location': person.location or '',
+            'area': person.area or '',
+            'mail_id': person.mail_id or '',
+            'training_date': person.training_date.strftime('%Y-%m-%d') if person.training_date else '',
+        })
+    except Person.DoesNotExist:
+        return Response({
+            'found': False
+        })
 

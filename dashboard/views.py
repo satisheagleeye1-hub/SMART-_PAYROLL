@@ -19,6 +19,7 @@ def admin_dashboard(request):
         return redirect('dashboard:employee_dashboard')
     
     today = timezone.now().date()
+    current_month_start = date(today.year, today.month, 1)
     
     # Today's attendance stats
     today_attendances = Attendance.objects.filter(date=today)
@@ -27,67 +28,20 @@ def admin_dashboard(request):
     
     # Today's collections
     today_collections = DailyCollection.objects.filter(date=today)
-    total_daily_collection = today_collections.aggregate(Sum('amount_collected'))['amount_collected__sum'] or 0
-    total_incentives = today_collections.aggregate(Sum('incentive_earned'))['incentive_earned__sum'] or 0
+    daily_collections = today_collections.aggregate(Sum('amount_collected'))['amount_collected__sum'] or Decimal('0.00')
+    daily_payout = today_collections.aggregate(Sum('payout_amount'))['payout_amount__sum'] or Decimal('0.00')
+    today_incentive = today_collections.aggregate(Sum('incentive_earned'))['incentive_earned__sum'] or Decimal('0.00')
+    
+    # First office and second office payouts for today
+    first_office_today = today_collections.filter(office_type='first').aggregate(Sum('payout_amount'))['payout_amount__sum'] or Decimal('0.00')
+    second_office_today = today_collections.filter(office_type='second').aggregate(Sum('payout_amount'))['payout_amount__sum'] or Decimal('0.00')
+    
+    # Monthly collections
+    month_collections = DailyCollection.objects.filter(date__gte=current_month_start, date__lte=today)
+    monthly_collections = month_collections.aggregate(Sum('amount_collected'))['amount_collected__sum'] or Decimal('0.00')
+    monthly_payout = month_collections.aggregate(Sum('payout_amount'))['payout_amount__sum'] or Decimal('0.00')
+    monthly_incentive = month_collections.aggregate(Sum('incentive_earned'))['incentive_earned__sum'] or Decimal('0.00')
 
-    # Per-employee collection totals and payout (85%) for today
-    per_employee_today_qs = DailyCollection.objects.filter(date=today).values(
-        'employee', 'employee__id', 'employee__first_name', 'employee__last_name', 'employee__username'
-    ).annotate(total_collected=Sum('amount_collected'))
-
-    collection_payouts_today = []
-    company_payout_total_today = Decimal('0.00')
-    for row in per_employee_today_qs:
-        total_col = row['total_collected'] or Decimal('0.00')
-        # Ensure Decimal
-        total_col = Decimal(total_col)
-        payout = (total_col * Decimal('0.85')).quantize(Decimal('0.01'))
-        company_payout_total_today += payout
-        employee_display = row.get('employee__first_name') or ''
-        if row.get('employee__last_name'):
-            employee_display = (employee_display + ' ' + row.get('employee__last_name')).strip()
-        if not employee_display:
-            employee_display = row.get('employee__username') or f"ID {row.get('employee')}"
-
-        collection_payouts_today.append({
-            'employee_id': row['employee__id'] or row['employee'],
-            'employee_name': employee_display,
-            'total_collected': total_col,
-            'payout': payout,
-        })
-
-    # Also compute per-employee for current month (optional)
-    current_month_start = date(today.year, today.month, 1)
-    per_employee_month_qs = DailyCollection.objects.filter(date__gte=current_month_start, date__lte=today).values(
-        'employee', 'employee__id', 'employee__first_name', 'employee__last_name', 'employee__username'
-    ).annotate(total_collected=Sum('amount_collected'))
-
-    collection_payouts_month = []
-    company_payout_total_month = Decimal('0.00')
-    for row in per_employee_month_qs:
-        total_col = row['total_collected'] or Decimal('0.00')
-        total_col = Decimal(total_col)
-        payout = (total_col * Decimal('0.85')).quantize(Decimal('0.01'))
-        company_payout_total_month += payout
-        employee_display = row.get('employee__first_name') or ''
-        if row.get('employee__last_name'):
-            employee_display = (employee_display + ' ' + row.get('employee__last_name')).strip()
-        if not employee_display:
-            employee_display = row.get('employee__username') or f"ID {row.get('employee')}"
-
-        collection_payouts_month.append({
-            'employee_id': row['employee__id'] or row['employee'],
-            'employee_name': employee_display,
-            'total_collected': total_col,
-            'payout': payout,
-        })
-
-    # Total payout (this month)
-    current_month_salaries = Salary.objects.filter(
-        end_date__gte=current_month_start,
-        end_date__lte=today
-    )
-    total_payout = current_month_salaries.aggregate(Sum('net_salary'))['net_salary__sum'] or 0
     
     # Today's attendance list
     today_attendance_list = today_attendances.filter(in_time__isnull=False).order_by('-in_time')[:10]
@@ -166,9 +120,14 @@ def admin_dashboard(request):
     context = {
         'present_count': present_count,
         'absent_count': absent_count,
-        'total_daily_collection': total_daily_collection,
-        'total_incentives': total_incentives,
-        'total_payout': total_payout,
+        'daily_collections': daily_collections,
+        'daily_payout': daily_payout,
+        'monthly_collections': monthly_collections,
+        'monthly_payout': monthly_payout,
+        'today_incentive': today_incentive,
+        'monthly_incentive': monthly_incentive,
+        'first_office_payout': first_office_today,
+        'second_office_payout': second_office_today,
         'today_attendance_list': today_attendance_list,
         'recent_collections': recent_collections,
         'low_attendance_employees': low_attendance_employees[:5],
@@ -178,10 +137,6 @@ def admin_dashboard(request):
         'chart_collections': mark_safe(json.dumps(chart_collections)),
         'salary_ranges': salary_ranges,
         'today': today,
-        'collection_payouts_today': collection_payouts_today,
-        'company_payout_total_today': company_payout_total_today,
-        'collection_payouts_month': collection_payouts_month,
-        'company_payout_total_month': company_payout_total_month,
     }
     return render(request, 'dashboard/admin_dashboard.html', context)
 

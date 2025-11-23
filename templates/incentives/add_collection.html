@@ -25,10 +25,51 @@
             <label class="block text-gray-700 text-sm font-bold mb-2">Date *</label>
             <input type="date" name="date" value="{% now 'Y-m-d' %}" class="border rounded-lg px-4 py-2 w-full" required>
         </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Office Type *</label>
+            <select name="office_type" class="border rounded-lg px-4 py-2 w-full" required>
+                <option value="first">First Office</option>
+                <option value="second">Second Office</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">First Office: 85% of amount | Second Office: 85% of (amount/2)</p>
+        </div>
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-bold mb-2">Amount Collected (₹) *</label>
             <input type="number" name="amount_collected" step="0.01" min="0" class="border rounded-lg px-4 py-2 w-full" required>
             <p class="text-xs text-gray-500 mt-1">Incentive will be calculated automatically (₹1950 × 2 = ₹500 incentive)</p>
+        </div>
+        
+        <div class="border-t pt-6 mt-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Person Details (Who gave the payment)</h3>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Mobile Number</label>
+                <input type="text" name="person_mobile" id="person_mobile" class="border rounded-lg px-4 py-2 w-full" placeholder="Enter mobile number">
+                <p class="text-xs text-gray-500 mt-1">Enter mobile to auto-fill person details if exists</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Name</label>
+                    <input type="text" name="person_name" id="person_name" class="border rounded-lg px-4 py-2 w-full" placeholder="Person name">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Location</label>
+                    <input type="text" name="person_location" id="person_location" class="border rounded-lg px-4 py-2 w-full" placeholder="Location">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Area</label>
+                    <input type="text" name="person_area" id="person_area" class="border rounded-lg px-4 py-2 w-full" placeholder="Area">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Mail ID</label>
+                    <input type="email" name="person_mail_id" id="person_mail_id" class="border rounded-lg px-4 py-2 w-full" placeholder="Email address">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Training Date</label>
+                    <input type="date" name="person_training_date" id="person_training_date" class="border rounded-lg px-4 py-2 w-full">
+                </div>
+            </div>
         </div>
         <div class="flex gap-4">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
@@ -40,5 +81,27 @@
         </div>
     </form>
 </div>
+
+<script>
+document.getElementById('person_mobile').addEventListener('blur', function() {
+    const mobile = this.value.trim();
+    if (mobile.length >= 10) {
+        fetch(`/api/person/get-by-mobile/?mobile=${encodeURIComponent(mobile)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.found) {
+                    document.getElementById('person_name').value = data.name || '';
+                    document.getElementById('person_location').value = data.location || '';
+                    document.getElementById('person_area').value = data.area || '';
+                    document.getElementById('person_mail_id').value = data.mail_id || '';
+                    document.getElementById('person_training_date').value = data.training_date || '';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching person details:', error);
+            });
+    }
+});
+</script>
 {% endblock %}
 

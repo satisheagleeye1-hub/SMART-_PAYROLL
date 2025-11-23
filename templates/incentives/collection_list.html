@@ -60,8 +60,12 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Employee</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount Collected</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Incentive Earned</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Person Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Mobile</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Office Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payout</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Incentive</th>
                     {% if user.is_admin %}
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
                     {% endif %}
@@ -72,7 +76,15 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">{{ coll.employee.get_full_name|default:coll.employee.username }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ coll.date|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ coll.person.name|default:"-" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ coll.person.mobile|default:"-" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded {% if coll.office_type == 'first' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                            {{ coll.get_office_type_display }}
+                        </span>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap font-semibold">₹{{ coll.amount_collected|floatformat:2 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-blue-600 font-semibold">₹{{ coll.payout_amount|floatformat:2 }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">₹{{ coll.incentive_earned|floatformat:2 }}</td>
                     {% if user.is_admin %}
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -87,7 +99,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="{% if user.is_admin %}5{% else %}4{% endif %}" class="px-6 py-4 text-center text-gray-500">No collections found</td>
+                    <td colspan="{% if user.is_admin %}9{% else %}8{% endif %}" class="px-6 py-4 text-center text-gray-500">No collections found</td>
                 </tr>
                 {% endfor %}
             </tbody>

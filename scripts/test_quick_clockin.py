@@ -1,4 +1,4 @@
-from django.test import Client
+deacfrom django.test import Client
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from attendance.models import Attendance
