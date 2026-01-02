@@ -4,10 +4,10 @@ __pycache__/
 *$py.class
 
 # Environments
-.venv/
-venv/
-env/
-ENV/
+#.venv/
+#venv/
+#env/
+#ENV/
 
 # Django
 *.log
